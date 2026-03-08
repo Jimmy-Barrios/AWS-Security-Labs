@@ -87,6 +87,16 @@ No (or disabled) logging means no normal API story for defenders. That's **T1562
 - **Terraform 1.5+** installed.
 - A lab or sandbox AWS account (or OU) where you’re allowed to create these resources and enable a trail.
 
+### Authentication (AWS profile)
+
+Terraform uses the same credential chain as the AWS CLI. If you use a **named profile** (e.g. `aws configure --profile my-lab`), set it before running Terraform:
+
+```bash
+export AWS_PROFILE=my-lab
+```
+
+Then run `terraform plan` and `terraform apply` as usual. If you use the **default** profile, you don’t need to set anything.
+
 ### Deploy the vulnerable environment
 
 From the `LAB-001/terraform` directory:
@@ -97,6 +107,8 @@ terraform init
 terraform plan
 terraform apply -auto-approve
 ```
+
+Use the same profile (or `export AWS_PROFILE=...`) for any `aws` CLI commands in the lab so they hit the same account.
 
 Capture the outputs—you’ll need them in Section 8: `trail_bucket_name`, `trail_name`, and `region`. Use that region for all CLI commands below.
 
