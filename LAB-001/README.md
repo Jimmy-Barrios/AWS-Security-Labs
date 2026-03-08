@@ -194,9 +194,17 @@ Using the console the CloudWatch log group and IAM role needed will be created f
 
 1. Go to **CloudTrail** → **Trails** → **Create trail**.
 2. **Trail name:** `lab-001-audit-trail` (or whatever you like; we use this name in the terraform teardown).
-3. **S3 Bucket location:** Use the existing S3 bucket Terraform gave you (something like `lab-001-cloudtrail-logs-123456789012`). It's in your Terraform output as `trail_bucket_name`.
-4. Under **CloudWatch Logs**, choose to create a new log group. Name it something like `lab-001-cloudtrail-events`. When you do that, the console will offer to create an IAM role so CloudTrail can write to the log group, accept that. It saves you from building the role and policies by manually.
-5. Create the trail, then open it and click **Start logging**.
+3. **S3 Bucket location:** Use the existing S3 bucket Terraform gave you (something like `lab-001-cloudtrail-logs-123456789012`). It's in your Terraform output as `trail_bucket_name`. Click Browse and select your S3 bucket
+4. Create a new **AWS KMS Key** → Give your key a name
+5. Under **CloudWatch Logs**, choose **Enabled** 
+    1. Create a new log group. Name it something like `lab-001-cloudtrail-events`. 
+    2. IAM Role select **New** → Give your Role a name something like `CloudTrailRoleForCloudWatchLogs_lab-001-audit-trail` ****
+    
+    When you do this, the console create an IAM role so CloudTrail can write to the log group, accept that. It saves you from building the role and policies by manually.
+    
+6. Now we choose what type of **Events** we want to log. You should see **Management** Events, **Data** Events, **Insights** Events, and **Network activity** Events.
+    1. In our case we will choose **Management events**. 
+7. Create the trail, then open it and click **Start logging (**if its not already started).
 
 That's it. The trail is now recording API calls and sending them to both S3 and CloudWatch Logs.
 
@@ -215,7 +223,8 @@ Use the same region you've been using (e.g. us-east-1) for your profile. You don
 Wait a minute or two for events to land, then check.
 
 - **CloudTrail Event history:** In the console, go to **CloudTrail** → **Event history**. Filter by event name `CreateUser` (or browse). You should see the call that created `lab-001-hardened-test-user`.
-- **CloudWatch Logs Insights:** Go to **CloudWatch** → **Log groups** → your log group (e.g. `lab-001-cloudtrail-events`) → **Query with Logs Insights**. Select the log group and a time range that includes when you ran the create-user command. Try this query:
+- **CloudWatch Logs Insights:** Go to **CloudWatch** → **Logs** →  **Log Management** → your log group (e.g. `lab-001-cloudtrail-events`) → **Query with Logs Insights**. Select the log group and a time range that includes when you ran the create-user command. Try this query:
+    - You may have to wait around 5-10 minutes to see your logs updated.
 
 ```
 fields @timestamp, eventName, userIdentity.principalId, requestParameters.userName, sourceIPAddress
