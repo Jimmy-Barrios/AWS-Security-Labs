@@ -274,7 +274,7 @@ The closed loop: we had a role with IAM enumeration, we removed the policy, we r
 
 **Real world**
 
-Threat actors like Scattered Spider and APT29 use cloud IAM enumeration to map accounts and find escalation paths. Overly permissive IAM read is common in dev and contractor roles. If you're not looking for `ListUsers`, `ListRoles`, and similar calls, you might miss the reconnaissance phase entirely.
+Threat actors like Scattered Spider and APT29 (Cozy Bear) use cloud IAM enumeration to map accounts and find escalation paths. Overly permissive IAM read is common in dev and contractor roles. If you're not looking for `ListUsers`, `ListRoles`, and similar calls, you might miss the reconnaissance phase entirely.
 
 **Compliance and least privilege**
 
