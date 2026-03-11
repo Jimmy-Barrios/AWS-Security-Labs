@@ -159,7 +159,7 @@ aws iam get-user --user-name YOUR_IAM_USER_NAME
 
 **Step 6: Discover permissions on a role**
 
-In AWS, a role can have permissions in two places: **managed policies** (attached, reusable policies) and **inline policies** (embedded directly on the role). A thorough enumeration checks both — an attacker won't know which one is in use until they look.
+In AWS, a role can have permissions in two places: **managed policies** (attached, reusable policies) and **inline policies** (embedded directly on the role). A thorough enumeration checks both an attacker won't know which one is in use until they look.
 
 Check for managed policies first:
 
@@ -167,7 +167,7 @@ Check for managed policies first:
 aws iam list-attached-role-policies --role-name lab-002-attacker-role
 ```
 
-That returns empty for this role. That doesn't mean the role has no permissions — it means there are no managed policies. Now check for inline policies:
+That returns empty for this role. That doesn't mean the role has no permissions it means there are no managed policies. Now check for inline policies:
 
 ```bash
 aws iam list-role-policies --role-name lab-002-attacker-role
