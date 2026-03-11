@@ -222,6 +222,8 @@ resource "aws_iam_role_policy" "attacker_iam_enumeration" {
           "iam:ListAttachedRolePolicies",
           "iam:ListUserPolicies",
           "iam:ListRolePolicies",
+          "iam:GetUserPolicy",
+          "iam:GetRolePolicy",
           "iam:GetPolicy",
           "iam:GetPolicyVersion",
           "iam:ListGroupsForUser",
