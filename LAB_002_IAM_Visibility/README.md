@@ -157,21 +157,51 @@ Pick a user from the list (e.g. your own IAM user) and run:
 aws iam get-user --user-name YOUR_IAM_USER_NAME
 ```
 
-**Step 6: List policies attached to a role**
+**Step 6: Discover permissions on a role**
 
-Pick a role from the list (e.g. `lab-002-attacker-role`) and run:
+In AWS, a role can have permissions in two places: **managed policies** (attached, reusable policies) and **inline policies** (embedded directly on the role). A thorough enumeration checks both — an attacker won't know which one is in use until they look.
+
+Check for managed policies first:
 
 ```bash
 aws iam list-attached-role-policies --role-name lab-002-attacker-role
 ```
 
-**Step 7: List policies attached to a user**
+That returns empty for this role. That doesn't mean the role has no permissions — it means there are no managed policies. Now check for inline policies:
+
+```bash
+aws iam list-role-policies --role-name lab-002-attacker-role
+```
+
+You'll see `IAMEnumerationPolicy` listed. Read the full policy document to see exactly what the role can do:
+
+```bash
+aws iam get-role-policy --role-name lab-002-attacker-role --policy-name IAMEnumerationPolicy
+```
+
+This reveals the full list of IAM actions the role has — `ListUsers`, `ListRoles`, `GetUser`, etc. From here an attacker knows exactly what they can do and where to look next.
+
+**Step 7: Discover permissions on a user**
+
+Same two-step process for a user. Check managed policies:
 
 ```bash
 aws iam list-attached-user-policies --user-name YOUR_IAM_USER_NAME
 ```
 
-From an attacker's perspective, this is enough to map users, roles, and policies and look for escalation paths. CloudTrail has recorded every call.
+Then check inline policies:
+
+```bash
+aws iam list-user-policies --user-name YOUR_IAM_USER_NAME
+```
+
+If any inline policy names come back, read them with `get-user-policy`:
+
+```bash
+aws iam get-user-policy --user-name YOUR_IAM_USER_NAME --policy-name POLICY_NAME
+```
+
+From an attacker's perspective, this is enough to map users, roles, and their permissions and look for escalation paths. CloudTrail has recorded every call.
 
 **Step 8: Switch back to your normal credentials**
 
