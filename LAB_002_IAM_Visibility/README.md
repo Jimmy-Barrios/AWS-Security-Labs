@@ -280,6 +280,7 @@ export AWS_ACCESS_KEY_ID=<AccessKeyId from output>
 export AWS_SECRET_ACCESS_KEY=<SecretAccessKey from output>
 export AWS_SESSION_TOKEN=<SessionToken from output>
 
+# List Users 
 aws iam list-users
 ```
 
