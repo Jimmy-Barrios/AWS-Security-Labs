@@ -1,4 +1,4 @@
-# LAB-002: IAM Visibility — Detecting IAM Reconnaissance
+# LAB-002: IAM Visibility: Detecting IAM Reconnaissance
 
 |  |  |
 | --- | --- |
