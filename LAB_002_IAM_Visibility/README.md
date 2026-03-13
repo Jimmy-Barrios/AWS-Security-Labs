@@ -10,7 +10,7 @@
 
 ## 1. Lab Overview
 
-**Scenario:** A contractor's IAM role gets used to run `aws iam list-users` and `aws iam list-roles`. Someone gave that role broad IAM read permissions for "visibility" or "debugging." Now an attacker with those credentials can map your entire account—users, roles, policies—and hunt for privilege escalation paths. You might not even know it's happening unless you're looking for it.
+**Scenario:** A contractor's IAM role gets used to run `aws iam list-users` and `aws iam list-roles`. Someone gave that role broad IAM read permissions for "visibility" or "debugging." Now an attacker with those credentials can map your entire account users, roles, policies and hunt for privilege escalation paths. You might not even know it's happening unless you're looking for it.
 
 This lab shows what IAM enumeration looks like from the attacker's side, how to detect it in CloudTrail, and how to fix it by applying least privilege.
 
