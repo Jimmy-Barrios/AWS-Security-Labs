@@ -111,17 +111,43 @@ When apply finishes, Terraform will print outputs: the attacker role ARN, the lo
 
 ## 6. Attacker Perspective
 
-You'll assume the vulnerable role and run IAM enumeration commands. CloudTrail will record all of it.
+The attacker flow here mirrors how a real threat actor would work: first discover what's in the account, find an interesting role, check if you can assume it, then assume it and dig deeper. Every step generates CloudTrail events the defender will look for in Section 7.
 
-**Step 1: Assume the role**
+These first steps use your **base credentials** (the same ones you used to run `terraform apply`). You haven't assumed anything yet.
 
-Replace `ROLE_ARN` with the value from `terraform output attacker_role_arn`:
+**Step 1: Confirm your starting identity**
+
+```bash
+aws sts get-caller-identity
+```
+
+This tells you who you are before any role assumption. Note it down — you'll compare it later.
+
+**Step 2: Enumerate IAM roles**
+
+```bash
+aws iam list-roles
+```
+
+Scan the output. You're looking for roles that look like they have interesting permissions or were set up for a specific purpose. You'll see `lab-002-attacker-role` in the list.
+
+**Step 3: Read the trust policy on the target role**
+
+Before trying to assume a role, an attacker checks whether they're even allowed to. Pull the full role details:
+
+```bash
+aws iam get-role --role-name lab-002-attacker-role
+```
+
+Look at the `AssumeRolePolicyDocument` in the output. You'll see it trusts the account root (`arn:aws:iam::ACCOUNT_ID:root`), meaning any principal in the account with `sts:AssumeRole` can assume it. That's the green light.
+
+**Step 4: Assume the role**
 
 ```bash
 aws sts assume-role --role-arn ROLE_ARN --role-session-name lab002-attack
 ```
 
-The output includes `AccessKeyId`, `SecretAccessKey`, and `SessionToken`. Export them so the next commands use the assumed role:
+Replace `ROLE_ARN` with the ARN you found in Step 3 (or from `terraform output attacker_role_arn`). The output includes `AccessKeyId`, `SecretAccessKey`, and `SessionToken`. Export them so all following commands run as the assumed role:
 
 ```bash
 export AWS_ACCESS_KEY_ID=<AccessKeyId from output>
@@ -129,83 +155,56 @@ export AWS_SECRET_ACCESS_KEY=<SecretAccessKey from output>
 export AWS_SESSION_TOKEN=<SessionToken from output>
 ```
 
-**Step 2: Confirm you're using the role**
+**Step 5: Confirm the identity switch**
 
 ```bash
 aws sts get-caller-identity
 ```
 
-You should see the assumed role ARN, not your normal user.
+You should now see `lab-002-attacker-role` in the ARN, not your base user. You're operating as the attacker role.
 
-**Step 3: Enumerate IAM users**
+**Step 6: Enumerate users and roles**
+
+Now enumerate from inside the assumed role:
 
 ```bash
 aws iam list-users
-```
-
-**Step 4: Enumerate IAM roles**
-
-```bash
 aws iam list-roles
 ```
 
-**Step 5: Get details on a specific user**
+**Step 7: Discover permissions on roles and users**
 
-Pick a user from the list (e.g. your own IAM user) and run:
+In AWS, permissions can live in two places: **managed policies** (attached, reusable) and **inline policies** (embedded directly on the role or user). A thorough enumeration checks both — you won't know which is in use until you look.
 
-```bash
-aws iam get-user --user-name YOUR_IAM_USER_NAME
-```
-
-**Step 6: Discover permissions on a role**
-
-In AWS, a role can have permissions in two places: **managed policies** (attached, reusable policies) and **inline policies** (embedded directly on the role). A thorough enumeration checks both an attacker won't know which one is in use until they look.
-
-Check for managed policies first:
+Check managed policies on the role, then inline:
 
 ```bash
 aws iam list-attached-role-policies --role-name lab-002-attacker-role
-```
-
-That returns empty for this role. That doesn't mean the role has no permissions it means there are no managed policies. Now check for inline policies:
-
-```bash
 aws iam list-role-policies --role-name lab-002-attacker-role
 ```
 
-You'll see `IAMEnumerationPolicy` listed. Read the full policy document to see exactly what the role can do:
+`list-attached-role-policies` returns empty — no managed policies. But `list-role-policies` shows `IAMEnumerationPolicy`. Read it:
 
 ```bash
 aws iam get-role-policy --role-name lab-002-attacker-role --policy-name IAMEnumerationPolicy
 ```
 
-This reveals the full list of IAM actions the role has — `ListUsers`, `ListRoles`, `GetUser`, etc. From here an attacker knows exactly what they can do and where to look next.
-
-**Step 7: Discover permissions on a user**
-
-Same two-step process for a user. Check managed policies:
+This reveals the full list of IAM actions the role has. Now apply the same pattern to a user:
 
 ```bash
 aws iam list-attached-user-policies --user-name YOUR_IAM_USER_NAME
-```
-
-Then check inline policies:
-
-```bash
 aws iam list-user-policies --user-name YOUR_IAM_USER_NAME
 ```
 
-If any inline policy names come back, read them with `get-user-policy`:
+If any inline policy names appear, read them:
 
 ```bash
 aws iam get-user-policy --user-name YOUR_IAM_USER_NAME --policy-name POLICY_NAME
 ```
 
-From an attacker's perspective, this is enough to map users, roles, and their permissions and look for escalation paths. CloudTrail has recorded every call.
+At this point the attacker has a full map: users, roles, and their permissions. That's enough to identify escalation paths. CloudTrail has recorded every one of these calls.
 
-**Step 8: Switch back to your normal credentials**
-
-When you're done with the attacker steps, unset the temporary credentials so your next commands use your normal profile:
+**Step 8: Switch back to your base credentials**
 
 ```bash
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
