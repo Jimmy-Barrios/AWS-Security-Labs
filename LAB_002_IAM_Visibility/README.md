@@ -272,8 +272,13 @@ aws iam delete-role-policy --role-name lab-002-attacker-role --policy-name IAMEn
 Assume the role again and run the same enumeration commands:
 
 ```bash
+# Obtain a new Session Token
 aws sts assume-role --role-arn ROLE_ARN --role-session-name lab002-verify
+
 # Export the temporary credentials as before
+export AWS_ACCESS_KEY_ID=<AccessKeyId from output>
+export AWS_SECRET_ACCESS_KEY=<SecretAccessKey from output>
+export AWS_SESSION_TOKEN=<SessionToken from output>
 
 aws iam list-users
 ```
