@@ -21,7 +21,7 @@ This lab shows what IAM enumeration looks like from the attacker's side, how to 
 When you're done you'll be able to:
 
 - Explain why IAM enumeration is a reconnaissance technique and how it supports privilege escalation.
-- Run realistic IAM enumeration commands (`list-users`, `list-roles`, `get-user`, `list-attached-role-policies`, etc.) using an assumable role.
+- Run realistic IAM enumeration commands (`list-users`, `list-roles`, `get-user`, `list-attached-role-policies`, etc.) using an assumed role.
 - Use CloudWatch Logs Insights to detect IAM enumeration activity in CloudTrail.
 - Harden the environment by removing unnecessary IAM read permissions and confirm the attack fails with AccessDenied.
 
