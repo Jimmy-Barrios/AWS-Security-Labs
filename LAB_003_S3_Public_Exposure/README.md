@@ -1,10 +1,10 @@
-# LAB-003: S3 Public Exposure — Detecting and Fixing a Public S3 Bucket
+# LAB-003: S3 Public Exposure, Detecting and Fixing a Public S3 Bucket
 
 |  |  |
 | --- | --- |
 | **Estimated cost** | < $0.10 per run |
 | **Estimated time** | 45–60 minutes |
-| **MITRE ATT&CK (Cloud)** | **T1530** — Data from Cloud Storage (Collection) |
+| **MITRE ATT&CK (Cloud)** | **T1530** Data from Cloud Storage (Collection) |
 
 ---
 
@@ -12,7 +12,7 @@
 
 **Scenario:** A developer at a mid-size company needs to share quarterly financial reports with an external auditing firm. Instead of using a pre-signed URL or setting up a temporary access grant, they take the shortcut: turn off Block Public Access on an S3 bucket, slap a public-read bucket policy on it, drop in the files, and send the auditor the URL. "It's just for two weeks," they say. Six months later the bucket still exists, still has three directories of internal data in it, and nobody has thought about it since.
 
-An attacker running a bucket name wordlist — or finding the name in a leaked email, a CloudFront distribution config, or an SSL certificate transparency log — hits the bucket with zero AWS credentials and walks out with everything in it. The company doesn't find out for weeks, because nobody was watching for anonymous S3 access.
+An attacker running a bucket name wordlist or finding the name in a leaked email, a CloudFront distribution config, or an SSL certificate transparency log hits the bucket with zero AWS credentials and walks out with everything in it. The company doesn't find out for weeks, because nobody was watching for anonymous S3 access.
 
 This lab walks you through the full cycle: deploy the misconfigured bucket, simulate the attacker pulling data with `--no-sign-request`, find the anonymous access events in CloudTrail, and shut it down with Block Public Access and a policy delete.
 
@@ -76,7 +76,7 @@ When you're done you'll be able to:
 
 The data bucket has two settings working against it at the same time:
 
-1. **Block Public Access is disabled.** AWS ships every new bucket with all four Block Public Access settings enabled by default. Someone turned them off — in the Console, or via a one-liner — to make it easier to add a public-read policy.
+1. **Block Public Access is disabled.** AWS ships every new bucket with all four Block Public Access settings enabled by default. Someone turned them off in the Console, or via a one-liner to make it easier to add a public-read policy.
 2. **The bucket policy grants `s3:GetObject` and `s3:ListBucket` to `Principal: "*"`.** That means everyone. No authentication, no signed request, no AWS account needed. Just an HTTP GET.
 
 Together, these settings make every object in the bucket reachable via a plain URL. You can paste the URL into a browser.
@@ -101,7 +101,7 @@ AWS's own static website hosting docs used to walk through disabling Block Publi
 
 ### Account-level Block Public Access — check this first
 
-AWS has two layers of Block Public Access: **bucket-level** (which Terraform controls for the data bucket) and **account-level** (which can silently override the bucket level). Many AWS accounts — especially older ones or ones managed by an organization — have the account-level setting turned on. If it is, the public bucket policy won't take effect even after Terraform disables the bucket-level settings, and the attacker steps won't produce the expected results.
+AWS has two layers of Block Public Access: **bucket-level** (which Terraform controls for the data bucket) and **account-level** (which can silently override the bucket level). Many AWS accounts — especially older ones or ones managed by an organization have the account-level setting turned on. If it is, the public bucket policy won't take effect even after Terraform disables the bucket-level settings, and the attacker steps won't produce the expected results.
 
 Check your account-level settings before deploying:
 
@@ -169,7 +169,7 @@ aws s3 cp s3://YOUR_BUCKET_NAME/config/app-config.json . --no-sign-request
 cat app-config.json
 ```
 
-The config file is on your machine. In a real incident, this file would contain a real database password or API key — exactly the kind of secret developers put in config files and then store in S3.
+The config file is on your machine. In a real incident, this file would contain a real database password or API key exactly the kind of secret developers put in config files and then store in S3.
 
 **Step 4: Exfiltrate the rest**
 
@@ -195,7 +195,7 @@ CloudTrail recorded every one of those operations. The attacker's source IP is i
 
 ## 7. Defender Perspective
 
-Every `GetObject` and `ListBucket` call against the data bucket — authenticated or not — is recorded in CloudTrail because S3 data events are enabled for that bucket. Anonymous requests show up with `userIdentity.type = "Anonymous"`, which is exactly what you search for.
+Every `GetObject` and `ListBucket` call against the data bucket authenticated or not is recorded in CloudTrail because S3 data events are enabled for that bucket. Anonymous requests show up with `userIdentity.type = "Anonymous"`, which is exactly what you search for.
 
 Wait 5–15 minutes after the attacker steps for events to propagate to CloudWatch Logs, then run the queries below.
 
@@ -215,7 +215,7 @@ fields @timestamp, eventName, userIdentity.type, sourceIPAddress, requestParamet
 | sort @timestamp desc
 ```
 
-You should see your `GetObject` and `ListBucket` events with `userIdentity.type = "Anonymous"`. The `sourceIPAddress` is your own IP — in a real incident that's the attacker's IP.
+You should see your `GetObject` and `ListBucket` events with `userIdentity.type = "Anonymous"`. The `sourceIPAddress` is your own IP in a real incident that's the attacker's IP.
 
 **Narrow to specific files accessed**
 
@@ -228,7 +228,7 @@ fields @timestamp, eventName, requestParameters.key, sourceIPAddress
 | sort @timestamp desc
 ```
 
-This tells you exactly which files were accessed and when — critical for a breach scope assessment.
+This tells you exactly which files were accessed and when critical for a breach scope assessment.
 
 **Count exfiltration events by source IP**
 
@@ -255,7 +255,7 @@ For anonymous access, the `userIdentity` block looks like this:
 }
 ```
 
-No account ID. No role. No user name. Just `Anonymous`. That field is your detection anchor — everything else (IP, timestamp, object key) builds the incident timeline from it.
+No account ID. No role. No user name. Just `Anonymous`. That field is your detection anchor everything else (IP, timestamp, object key) builds the incident timeline from it.
 
 **AWS Config and Security Hub**
 
@@ -340,7 +340,7 @@ The bucket is no longer publicly accessible.
 
 **Real-world breaches**
 
-Public S3 buckets have been directly responsible for some of the most publicized data exposures in cloud history. Accenture (2017), Verizon (2017), the Republican National Committee (2017), Booz Allen Hamilton (2017), and GoDaddy (2019) all had sensitive data — customer records, internal credentials, classified reports — sitting in publicly readable S3 buckets for weeks or months before anyone noticed. The pattern is identical in every case: someone made an exception to share something quickly, and nobody cleaned it up or monitored for unexpected access.
+Public S3 buckets have been directly responsible for some of the most publicized data exposures in cloud history. Accenture (2017), Verizon (2017), the Republican National Committee (2017), Booz Allen Hamilton (2017), and GoDaddy (2019) all had sensitive data customer records, internal credentials, classified reports sitting in publicly readable S3 buckets for weeks or months before anyone noticed. The pattern is identical in every case: someone made an exception to share something quickly, and nobody cleaned it up or monitored for unexpected access.
 
 The average time-to-discovery for a public S3 exposure is measured in weeks. In that window, the data has usually already been scraped by automated scanners that crawl for open buckets continuously.
 
