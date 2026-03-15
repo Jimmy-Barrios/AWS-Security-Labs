@@ -76,14 +76,14 @@ When you're done you'll be able to:
 
 The data bucket has two settings working against it at the same time:
 
-1. **Block Public Access is disabled.** AWS ships every new bucket with all four Block Public Access settings enabled by default. Someone turned them off in the Console, or via a one-liner to make it easier to add a public-read policy.
+1. **Block Public Access is disabled.** AWS ships every new bucket with all four Block Public Access settings enabled by default. Someone turned them off in the Console, or via CLI to make it easier to add a public-read policy.
 2. **The bucket policy grants `s3:GetObject` and `s3:ListBucket` to `Principal: "*"`.** That means everyone. No authentication, no signed request, no AWS account needed. Just an HTTP GET.
 
 Together, these settings make every object in the bucket reachable via a plain URL. You can paste the URL into a browser.
 
 **Why you still see this in real orgs**
 
-AWS's own static website hosting docs used to walk through disabling Block Public Access and adding a public policy as the default flow. Dozens of still-active blog posts and Stack Overflow answers carry that same pattern. Teams copy it without understanding the risk, especially for buckets they intend to be "just for partners" or "just temporary." Content delivery, external report sharing, CI/CD artifact staging, partner data drops — all legitimate use cases that sometimes leave a permanently public bucket sitting around after the project ends.
+AWS's own static website hosting docs used to walk through disabling Block Public Access and adding a public policy as the default flow. Dozens of still-active blog posts and Stack Overflow answers carry that same pattern. Teams copy it without understanding the risk, especially for buckets they intend to be "just for partners" or "just temporary." Content delivery, external report sharing, CI/CD artifact staging, partner data drops all legitimate use cases that sometimes leave a permanently public bucket sitting around after the project ends.
 
 **MITRE ATT&CK**
 
@@ -99,9 +99,9 @@ AWS's own static website hosting docs used to walk through disabling Block Publi
 - **Terraform 1.5+** installed.
 - A sandbox AWS account where you're allowed to disable Block Public Access.
 
-### Account-level Block Public Access — check this first
+### Account-level Block Public Access check this first
 
-AWS has two layers of Block Public Access: **bucket-level** (which Terraform controls for the data bucket) and **account-level** (which can silently override the bucket level). Many AWS accounts — especially older ones or ones managed by an organization have the account-level setting turned on. If it is, the public bucket policy won't take effect even after Terraform disables the bucket-level settings, and the attacker steps won't produce the expected results.
+AWS has two layers of Block Public Access: **bucket-level** (which Terraform controls for the data bucket) and **account-level** (which can silently override the bucket level). Many AWS accounts especially older ones or ones managed by an organization have the account-level setting turned on. If it is, the public bucket policy won't take effect even after Terraform disables the bucket-level settings, and the attacker steps won't produce the expected results.
 
 Check your account-level settings before deploying:
 
